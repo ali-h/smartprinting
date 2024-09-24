@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import ip from 'ip';
 
 dotenv.config();
 
@@ -18,5 +17,5 @@ app.use('/user', userRoutes);
 app.use('/api', printingRoutes);
 
 app.listen(port, () => {
-  console.log(`Server is running on address: ${ip.address()}:${port}`);
+  console.log(`Server is running on port ${port}`);
 });
