@@ -6,7 +6,7 @@ export const getParam = (key) => {
       if (err) {
         reject(err);
       } else {
-        resolve(row);
+        resolve(row.value);
       }
     });
   });
