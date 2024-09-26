@@ -4,19 +4,21 @@ import {
   upload,
   handleFile,
   getCost,
-  updateFilePriority,
   deleteFile,
   getPrintingHistory,
   getCurrentQueue,
-} from '../controllers/printing.js';
+  downloadFile,
+  getAllTerminals,
+} from '../controllers/api.js';
 
 const router = Router();
 
 router.post('/upload', authenticate, upload.single('file'), handleFile);
 router.get('/cost', authenticate, getCost);
 router.get('/queue', authenticate, getCurrentQueue);
-router.post('/update', authenticate, updateFilePriority);
 router.post('/delete', authenticate, deleteFile);
 router.get('/history', authenticate, getPrintingHistory);
+router.get('/download/:fileId', downloadFile); // Removed authentication middleware
+router.get('/terminals', authenticate, getAllTerminals); // Add this new route
 
 export default router;

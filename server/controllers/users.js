@@ -1,6 +1,7 @@
 import db from '../config/database.js';
 import { isUsernameValid } from '../utils/username.js';
 import bcrypt from 'bcrypt';
+import { generateToken } from '../utils/token.js';
 
 export async function matchPassword(password, hashedPassword) {
   return await bcrypt.compare(password, hashedPassword);
@@ -47,21 +48,25 @@ export async function getBillingAccount(username) {
 
 export async function createUser(username, rfid, name, mobile, email, password) {
   const hashedPassword = await bcrypt.hash(password, 10);
+  const createdAt = Math.floor(Date.now() / 1000); // Unix timestamp in seconds
   
   // Create user
   await new Promise((resolve, reject) => {
-    db.run('INSERT INTO users (username, rfid, name, mobile, email, password) VALUES (?, ?, ?, ?, ?, ?)', [username, rfid, name, mobile, email, hashedPassword], (err) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
+    db.run('INSERT INTO users (username, rfid, name, mobile, email, password) VALUES (?, ?, ?, ?, ?, ?)', 
+      [username, rfid, name, mobile, email, hashedPassword], 
+      (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
       }
-    });
+    );
   });
 
   // Create billing account
   await new Promise((resolve, reject) => {
-    db.run('INSERT INTO billings (username) VALUES (?)', [username], (err) => {
+    db.run('INSERT INTO billings (username, createdAt) VALUES (?, ?)', [username, createdAt], (err) => {
       if (err) {
         reject(err);
       } else {
@@ -152,3 +157,63 @@ export async function updateUser(username, rfid, name, mobile, email) {
     });
   });
 }
+
+export const loginUser = async (req, res) => {
+  const { username, password } = req.body;
+  const user = await getUser(username);
+  if (!user) {
+    return res.status(401).json({ message: 'Invalid credentials' });
+  }
+
+  const passwordMatch = await matchPassword(password, user.password);
+  if (!passwordMatch) {
+    return res.status(401).json({ message: 'Invalid credentials' });
+  }
+
+  const token = generateToken({ id: user.id, username: user.username });
+  res.json({ token });
+};
+
+export const registerUser = async (req, res) => {
+  const { username, rfid, name, mobile, email, password } = req.body;
+
+  const validationResult = await validateRegistration(username, rfid, name, mobile, email, password);
+  if (!validationResult.valid) {
+    return res.status(400).json({ message: validationResult.message });
+  }
+
+  try {
+    const result = await createUser(username, rfid, name, mobile, email, password);
+    res.status(201).json(result);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to create user', error: error.message });
+  }
+};
+
+export const getPendingPrints = async (username) => {
+  return new Promise((resolve, reject) => {
+    db.all('SELECT COUNT(*) as count FROM queue WHERE username = ?', [username], (err, rows) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(rows[0].count);
+      }
+    });
+  });
+};
+
+export const getUserProfile = async (req, res) => {
+  const user = await getUser(req.user.username);
+  const billingInfo = await getBillingAccount(req.user.username);
+  const pendingPrints = await getPendingPrints(req.user.username);
+
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+
+  if (!billingInfo) {
+    return res.status(404).json({ message: 'Billing info not found' });
+  }
+
+  res.json({ ...user, ...billingInfo, pendingPrints });
+};

@@ -1,3 +1,4 @@
+import jwt from 'jsonwebtoken';
 import { verifyToken } from '../utils/token.js';
 
 const authenticate = (req, res, next) => {

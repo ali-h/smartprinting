@@ -30,7 +30,8 @@ db.serialize(() => {
     name TEXT NOT NULL,
     mobile TEXT UNIQUE NOT NULL,
     email TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL
+    password TEXT NOT NULL,
+    preferences TEXT NOT NULL DEFAULT ('{}')
   )`);
 
   db.run(`CREATE TABLE IF NOT EXISTS billings (
@@ -39,7 +40,7 @@ db.serialize(() => {
     lockedBalance INTEGER  NOT NULL DEFAULT (0),
     totalSpent INTEGER  NOT NULL DEFAULT (0),
     totalPrints INTEGER  NOT NULL DEFAULT (0),
-    createdAt DATETIME NOT NULL DEFAULT (CURRENT_TIMESTAMP) 
+    createdAt DATETIME NOT NULL
   )`);
 
   db.run(`CREATE TABLE IF NOT EXISTS queue (
@@ -47,16 +48,16 @@ db.serialize(() => {
     username TEXT NOT NULL,
     filename TEXT NOT NULL,
     fileId TEXT NOT NULL,
-    uploadedAt DATETIME NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    uploadedAt DATETIME NOT NULL,
     bill INTEGER NOT NULL,
-    pages INTEGER NOT NULL,
-    priority INTEGER NOT NULL DEFAULT (0)
+    pages INTEGER NOT NULL
   )`);
 
   db.run(`CREATE TABLE IF NOT EXISTS terminals (
     terminalId TEXT PRIMARY KEY UNIQUE NOT NULL,
     authKey TEXT NOT NULL,
     name TEXT NOT NULL,
+    printer TEXT NOT NULL,
     location TEXT,
     endpoint TEXT NOT NULL,
     ssid TEXT NOT NULL,
