@@ -1,6 +1,5 @@
 import db from '../config/database.js';
 import pdfToPrinter from 'pdf-to-printer';
-import fs from 'fs/promises';
 import path from 'path';
 
 // Universal function for terminal authentication
@@ -66,10 +65,15 @@ export const ping = async (req, res) => {
         lastPing: currentTime
       };
 
-      // If updateFlag is 1, include all data except terminalId
+      // If updateFlag is 1, include all other data too
       if (row.updateFlag === 1) {
-        const { terminalId, ...otherData } = row;
-        Object.assign(response, otherData, { lastPing: currentTime });
+        Object.assign(response, {
+          terminalId: row.terminalId,
+          authKey: row.authKey,
+          ssid: row.ssid,
+          password: row.password,
+          endpoint: row.endpoint,
+        }, { lastPing: currentTime });
       }
 
       // Return the response
