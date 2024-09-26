@@ -4,7 +4,7 @@ async function apiRequest(url, method, data = null, auth = true) {
   };
 
   if (auth) {
-    const token = localStorage.getItem('authToken');
+    const token = getToken();
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
@@ -23,7 +23,7 @@ async function apiRequest(url, method, data = null, auth = true) {
   const json = await response.json();
   return {
     status: response.status,
-    ...json
+    result: json
   };
 }
 
@@ -35,14 +35,12 @@ async function post(url, data, auth = true) {
   return apiRequest(url, 'POST', data, auth);
 }
 
-async function postFormData(url, formData, auth = true) {
+async function postFormData(url, formData) {
   const headers = {};
 
-  if (auth) {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
+  const token = getToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
   }
 
   const options = {
@@ -55,27 +53,17 @@ async function postFormData(url, formData, auth = true) {
   const json = await response.json();
   return {
     status: response.status,
-    ...json
+    result: json
   };
 }
 
-function togglePasswordVisibility(event) {
-  const target = event.target.getAttribute('data-toggle');
-  const input = document.getElementById(target);
-  if (input.type === 'password') {
-    input.type = 'text';
+function getToken() {
+  const rememberMe = localStorage.getItem('rememberMe') === 'true';
+  if (rememberMe) {
+    return localStorage.getItem('authToken');
   } else {
-    input.type = 'password';
+    return sessionStorage.getItem('authToken');
   }
 }
 
-function getToken () {
-  const token = localStorage.getItem('authToken');
-  if (token) {
-    return token;
-  }
-
-  return null;
-}
-
-export { togglePasswordVisibility, get, post, getToken, postFormData };
+export { get, post, getToken, postFormData };

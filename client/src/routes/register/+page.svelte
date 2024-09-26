@@ -1,9 +1,11 @@
 <script>
-  import { togglePasswordVisibility, post, getToken } from '$lib';
+  import { post, getToken } from '$lib';
   import { goto } from '$app/navigation';
   import { getToastStore } from '@skeletonlabs/skeleton';
   import { onMount } from 'svelte';
 	import { API_URL, loading, showcontent } from '../../stores';
+  // Import Lucide icons
+  import { SquareUserRound, Info, Eye, EyeOff } from 'lucide-svelte';
 
   const toastStore = getToastStore();
 
@@ -17,6 +19,8 @@
   let rfid = '';
   let password = '';
   let confirm_password = '';
+  let passwordVisible = false;
+  let confirmPasswordVisible = false;
 
   async function handleRegister(e) {
     e.preventDefault();
@@ -54,13 +58,21 @@
         });
         goto('/login'); // Redirect to login
       } else {
-        throw new Error(response.message || 'Registration failed');
+        throw new Error(response.result.message || 'Registration failed');
       }
     } catch (error) {
       toastStore.trigger({
         message: error.message || 'An error occurred during registration',
         background: 'variant-filled-error'
       });
+    }
+  }
+
+  function togglePasswordVisibility(field) {
+    if (field === 'password') {
+      passwordVisible = !passwordVisible;
+    } else if (field === 'confirm_password') {
+      confirmPasswordVisible = !confirmPasswordVisible;
     }
   }
 
@@ -85,10 +97,7 @@
 						Register
 					</span>
 
-          <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="w-7 h-7 bi bi-person-bounding-box" viewBox="0 0 16 16">
-            <path d="M1.5 1a.5.5 0 0 0-.5.5v3a.5.5 0 0 1-1 0v-3A1.5 1.5 0 0 1 1.5 0h3a.5.5 0 0 1 0 1zM11 .5a.5.5 0 0 1 .5-.5h3A1.5 1.5 0 0 1 16 1.5v3a.5.5 0 0 1-1 0v-3a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 1-.5-.5M.5 11a.5.5 0 0 1 .5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 1 0 1h-3A1.5 1.5 0 0 1 0 14.5v-3a.5.5 0 0 1 .5-.5m15 0a.5.5 0 0 1 .5.5v3a1.5 1.5 0 0 1-1.5 1.5h-3a.5.5 0 0 1 0-1h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 1 .5-.5"/>
-            <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm8-9a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
-          </svg>
+          <SquareUserRound size={28} />
 				</div>
 
         <hr class="!border-t-3 mb-5" />
@@ -126,23 +135,25 @@
               <input type="text" name="rfid" id="rfid" bind:value={rfid} class="input pr-10" placeholder="Enter RFID No." required>
             
               <button type="button" class="absolute inset-y-0 end-0 flex items-center pe-3">
-                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
-                  <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
-                </svg>
-            </button>
+                <Info size={16} />
+              </button>
             </div>
           </div>
 
           <div>
 						<label for="password" class="block text-sm font-medium ml-1">Password</label>
 						<div class="relative mt-2">
-							<input type="password" name="password" id="password" bind:value={password} class="input pr-10" placeholder="Enter Password" required>
-							<button type="button" class="absolute inset-y-0 end-0 flex items-center pe-3" data-toggle="password" on:click={togglePasswordVisibility}>
-								<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" data-toggle="password" class="bi bi-eye" viewBox="0 0 16 16">
-                  <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>
-                  <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
-                </svg>
+							{#if passwordVisible}
+								<input type="text" name="password" id="password-visible" bind:value={password} class="input pr-10" placeholder="Enter Password" required>
+							{:else}
+								<input type="password" name="password" id="password-hidden" bind:value={password} class="input pr-10" placeholder="Enter Password" required>
+							{/if}
+							<button type="button" class="absolute inset-y-0 end-0 flex items-center pe-3" on:click={() => togglePasswordVisibility('password')}>
+								{#if passwordVisible}
+									<EyeOff size={18} />
+								{:else}
+									<Eye size={18} />
+								{/if}
 							</button>
 						</div>
 					</div>
@@ -150,12 +161,17 @@
           <div>
 						<label for="confirm_password" class="block text-sm font-medium ml-1">Confirm Password</label>
 						<div class="relative mt-2">
-							<input type="password" name="confirm_password" id="confirm_password" bind:value={confirm_password} class="input pr-10" placeholder="Enter Confirm Password" required>
-							<button type="button" class="absolute inset-y-0 end-0 flex items-center pe-3" data-toggle="confirm_password" on:click={togglePasswordVisibility}>
-								<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" data-toggle="confirm_password" class="bi bi-eye" viewBox="0 0 16 16">
-                  <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>
-                  <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
-                </svg>
+							{#if confirmPasswordVisible}
+								<input type="text" name="confirm_password" id="confirm_password-visible" bind:value={confirm_password} class="input pr-10" placeholder="Enter Confirm Password" required>
+							{:else}
+								<input type="password" name="confirm_password" id="confirm_password-hidden" bind:value={confirm_password} class="input pr-10" placeholder="Enter Confirm Password" required>
+							{/if}
+							<button type="button" class="absolute inset-y-0 end-0 flex items-center pe-3" on:click={() => togglePasswordVisibility('confirm_password')}>
+								{#if confirmPasswordVisible}
+									<EyeOff size={18} />
+								{:else}
+									<Eye size={18} />
+								{/if}
 							</button>
 						</div>
 					</div>
