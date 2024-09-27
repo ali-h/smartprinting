@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { API_URL } from '../stores';
+  import { API_URL, updateTrigger } from '../stores';
   import { get, post, getToken } from '$lib';
   import { Printer, Info } from 'lucide-svelte';
   import { popup, getToastStore } from '@skeletonlabs/skeleton';
@@ -12,6 +12,11 @@
   onMount(async () => {
     await fetchHistoryData();
   });
+
+  $: {
+    $updateTrigger;
+    fetchHistoryData();
+  }
 
   async function fetchHistoryData() {
     try {

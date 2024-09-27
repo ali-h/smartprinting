@@ -2,13 +2,12 @@
 	import '../app.postcss';
 
 	import { AppBar, initializeStores, Toast, ProgressBar, getToastStore } from '@skeletonlabs/skeleton';
-	import { loading, name, isLoggedIn } from '../stores.js';
+	import { API_URL, loading, name, isLoggedIn, triggerPing } from '../stores.js';
 	import { goto } from '$app/navigation';
 	import { Menu, X, CircleUser, Gauge, Wallet, Settings, BookOpen, LogIn, UserPlus, LogOut, FileText, Flag } from 'lucide-svelte';
 	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
 	import { storePopup } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
-	import { blur } from 'svelte/transition';
 
 	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
 
@@ -17,6 +16,60 @@
 	const toastStore = getToastStore();
 
 	let isDrawerOpen = false;
+	let isApiConnected = false;
+	let socket;
+
+	function connectWebSocket() {
+		if (socket) {
+			socket.close();
+		}
+		const wsUrl = $API_URL.replace('http://', 'ws://') + '/ping';
+		socket = new WebSocket(wsUrl);
+
+		socket.onopen = () => {
+			isApiConnected = true;
+		};
+
+		socket.onclose = () => {
+			isApiConnected = false;
+			setTimeout(connectWebSocket, 5000);
+		};
+
+		socket.onerror = () => {
+			isApiConnected = false;
+			toastStore.trigger({
+				message: 'API connection error',
+				background: 'variant-filled-error'
+			});
+		};
+
+		socket.onmessage = (event) => {
+			triggerPing();
+		};
+	}
+
+	let isApiSettingsOpen = false;
+
+	function openApiSettings() {
+		isApiSettingsOpen = true;
+	}
+
+	function saveApiSettings() {
+		localStorage.setItem('apiUrl', $API_URL);
+		isApiSettingsOpen = false;
+		if (socket) {
+			socket.close();
+		}
+		connectWebSocket();
+	}
+
+	onMount(() => {
+		const storedApiUrl = localStorage.getItem('apiUrl');
+		if (storedApiUrl) {
+			$API_URL = storedApiUrl;
+		}
+		connectWebSocket();
+	});
 
 	const openDrawer = () => {
 		isDrawerOpen = true;
@@ -61,12 +114,15 @@
 		<a href="/" class="flex items-center gap-2">
 			<img src="/icon.png" alt="Smart Printing" class="w-10 h-10" />
 			<span class="h3 handjet mt-1">SMART PRINTING</span>
+			<div class={`w-3 h-3 rounded-full ${isApiConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
 		</a>
 	</svelte:fragment>
 	<svelte:fragment slot="trail">
-		<button class="btn variant-ghost-primary" on:click={openDrawer}>
-			<Menu size={20} />
-		</button>
+		<div class="flex items-center gap-2">
+			<button class="btn variant-ghost-primary" on:click={openDrawer}>
+				<Menu size={20} />
+			</button>
+		</div>
 	</svelte:fragment>
 
 	<div
@@ -124,6 +180,10 @@
 			</div>
 	
 			<div class="absolute bottom-4 right-0 flex flex-col gap-2">
+				<button class="btn variant-glass-error btn-lg rounded-r-none rounded-l-full" on:click={openApiSettings}>
+					<Settings size={16} />
+					<span class="text-gray-300">API</span>
+				</button>
 				<a class="btn variant-glass-error btn-lg rounded-r-none rounded-l-full" href="/about" on:click={handleMenuItemClick}>
 					<FileText size={16} />
 					<span class="text-gray-300">About Us</span>
@@ -146,6 +206,20 @@
 			role="button"
 			tabindex="0"
 		></div>
+	{/if}
+
+	<!-- API Settings Modal -->
+	{#if isApiSettingsOpen}
+		<div class="fixed inset-0 bg-black/50 flex items-center justify-center z-[10001]">
+			<div class="bg-surface-100-800-token p-4 rounded-lg w-96">
+				<h2 class="h3 mb-4">API Settings</h2>
+				<input type="text" bind:value={$API_URL} class="input w-full mb-4" placeholder="Enter API URL" />
+				<div class="flex justify-end gap-2">
+					<button class="btn variant-filled-secondary" on:click={() => isApiSettingsOpen = false}>Cancel</button>
+					<button class="btn variant-filled-primary" on:click={saveApiSettings}>Save</button>
+				</div>
+			</div>
+		</div>
 	{/if}
 </AppBar>
 

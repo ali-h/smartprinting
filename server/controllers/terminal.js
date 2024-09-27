@@ -1,6 +1,7 @@
 import db from '../config/database.js';
 import pdfToPrinter from 'pdf-to-printer';
 import path from 'path';
+import { sendUpdate, sendTerminalPing } from '../config/websocket.js';
 
 // Universal function for terminal authentication
 const authenticateTerminal = (terminalId, authKey) => {
@@ -55,7 +56,7 @@ export const ping = async (req, res) => {
 
     db.run(updateSql, updateParams, (updateErr) => {
       if (updateErr) {
-        console.error('Error updating lastPing:', updateErr);
+        console.log('Error updating lastPing:', updateErr);
         return res.status(500).json({ error: 'Error updating lastPing' });
       }
 
@@ -75,6 +76,13 @@ export const ping = async (req, res) => {
           endpoint: row.endpoint,
         }, { lastPing: currentTime });
       }
+
+      // Send WebSocket update for terminal ping
+      sendTerminalPing({
+        type: 'terminal_ping',
+        terminalId: terminalId,
+        timestamp: currentTime
+      });
 
       // Return the response
       return res.status(200).json(response);
@@ -217,6 +225,18 @@ export const scan = async (req, res) => {
               console.error('Error updating database after print:', error);
               return res.status(500).json({ error: 'Error updating database after print' });
             });
+          }
+        });
+
+        // After successful print, send update to user
+        sendUpdate(row.username, {
+          type: 'print_completed',
+          data: {
+            filename: row.filename,
+            printedAt: currentTime,
+            pages: row.pages,
+            bill: row.bill,
+            TerminalId: terminalId
           }
         });
       } else {

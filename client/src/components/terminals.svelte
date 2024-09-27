@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { API_URL } from '../stores';
+  import { API_URL, pingTrigger } from '../stores';
   import { get } from '$lib';
   import { MapPin, Clock, Calendar, ChevronLeft, ChevronRight } from 'lucide-svelte';
   import { SlideToggle } from '@skeletonlabs/skeleton';
@@ -85,6 +85,11 @@
 
     return () => clearInterval(timer);
   });
+
+  $: {
+    $pingTrigger;
+    fetchTerminals();
+  }
 
   $: filteredTerminals = showInactive ? sortTerminalsByLastPing([...terminals]) : sortTerminalsByLastPing([...terminals]).filter(t => t.status === 1);
   $: totalPages = Math.ceil(filteredTerminals.length / terminalsPerPage);

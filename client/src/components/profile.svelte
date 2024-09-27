@@ -1,5 +1,5 @@
 <script>
-  import { API_URL, loading, showcontent, isLoggedIn, name } from '../stores';
+  import { API_URL, updateTrigger, name } from '../stores';
   import { get } from '$lib';
   import { onMount } from 'svelte';
   import { toSvg } from 'jdenticon';
@@ -14,42 +14,52 @@
   let totalPrints = 0;
   let activeSince = 0;
 
-  onMount(() => {
-    get(`${$API_URL}/user/profile`)
-      .then(response => {
-        if (response.status === 200) {
-          const result = response.result;
-          username = result.username;
-          $name = result.name;
-          balance = result.currentBalance;
-          lockedBalance = result.lockedBalance;
-          pendingPrints = result.pendingPrints || 0;
-          totalSpent = result.totalSpent || 0;
-          totalPrints = result.totalPrints || 0;
-          
-          const date = new Date(result.createdAt * 1000);
-          const now = new Date();
-          const diffTime = Math.abs(now - date);
-          const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-          const diffMonths = Math.floor(diffDays / 30);
-          const diffYears = Math.floor(diffDays / 365);
-          
-          if (diffYears > 0) {
-            activeSince = `${diffYears} year${diffYears > 1 ? 's' : ''}`;
-          } else if (diffMonths > 0) {
-            activeSince = `${diffMonths} month${diffMonths > 1 ? 's' : ''}`;
-          } else {
-            activeSince = `${diffDays} day${diffDays !== 1 ? 's' : ''}`;
-          }
-          
-          // Update profile picture
-          const newProfilePicture = toSvg($name, 200);
-          profilePictureUrl = `data:image/svg+xml;base64,${btoa(newProfilePicture)}`;
+  let profileData = {};
+
+  $: {
+    $updateTrigger;
+    fetchProfileData();
+  }
+
+  async function fetchProfileData() {
+    try {
+      const response = await get(`${$API_URL}/user/profile`);
+      if (response.status === 200) {
+        profileData = response.result;
+        username = profileData.username;
+        $name = profileData.name;
+        balance = profileData.currentBalance;
+        lockedBalance = profileData.lockedBalance;
+        pendingPrints = profileData.pendingPrints || 0;
+        totalSpent = profileData.totalSpent || 0;
+        totalPrints = profileData.totalPrints || 0;
+        
+        const date = new Date(profileData.createdAt * 1000);
+        const now = new Date();
+        const diffTime = Math.abs(now - date);
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        const diffMonths = Math.floor(diffDays / 30);
+        const diffYears = Math.floor(diffDays / 365);
+        
+        if (diffYears > 0) {
+          activeSince = `${diffYears} year${diffYears > 1 ? 's' : ''}`;
+        } else if (diffMonths > 0) {
+          activeSince = `${diffMonths} month${diffMonths > 1 ? 's' : ''}`;
+        } else {
+          activeSince = `${diffDays} day${diffDays !== 1 ? 's' : ''}`;
         }
-      })
-      .catch(error => {
-        console.error('Error fetching user profile:', error);
-      });
+        
+        // Update profile picture
+        const newProfilePicture = toSvg($name, 200);
+        profilePictureUrl = `data:image/svg+xml;base64,${btoa(newProfilePicture)}`;
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  }
+
+  onMount(() => {
+    fetchProfileData();
   });
 </script>
 

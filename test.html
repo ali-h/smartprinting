@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Sample</title>
+</head>
+<body>
+    <h1>WebSocket Sample</h1>
+    <div id="status">Disconnected</div>
+    <div id="messages"></div>
+    <input type="text" id="messageInput" placeholder="Type a message">
+    <button onclick="sendMessage()">Send Message</button>
+
+    <script>
+        let socket;
+        const username = 'SWEN212101024'; // Replace with actual user authentication
+
+        function connect() {
+            // Replace 'your-server-url' with your actual server URL
+            socket = new WebSocket(`ws://192.168.100.2:3000/updates?username=${username}`);
+
+            socket.onopen = function(e) {
+                document.getElementById('status').textContent = 'Connected';
+                console.log("[open] Connection established");
+            };
+
+            socket.onmessage = function(event) {
+                console.log(`[message] Data received from server: ${event.data}`);
+                const data = JSON.parse(event.data);
+                displayMessage(data);
+            };
+
+            socket.onclose = function(event) {
+                if (event.wasClean) {
+                    console.log(`[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+                } else {
+                    console.log('[close] Connection died');
+                }
+                document.getElementById('status').textContent = 'Disconnected';
+            };
+
+            socket.onerror = function(error) {
+                console.log(`[error] ${error.message}`);
+            };
+        }
+
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value;
+            if (message) {
+                socket.send(JSON.stringify({ type: 'message', content: message }));
+                messageInput.value = '';
+            }
+        }
+
+        function displayMessage(data) {
+            const messagesDiv = document.getElementById('messages');
+            const messageElement = document.createElement('p');
+            
+            switch(data.type) {
+                case 'file_uploaded':
+                    messageElement.textContent = `File uploaded: ${data.data.filename} (${data.data.pages} pages, $${data.data.bill})`;
+                    break;
+                case 'file_deleted':
+                    messageElement.textContent = `File deleted: ${data.data.fileId} (Refunded: $${data.data.refundedAmount})`;
+                    break;
+                case 'print_completed':
+                    messageElement.textContent = `Print completed: ${data.data.filename} (${data.data.pages} pages, $${data.data.bill})`;
+                    break;
+                default:
+                    messageElement.textContent = JSON.stringify(data);
+            }
+            
+            messagesDiv.appendChild(messageElement);
+        }
+
+        // Connect when the page loads
+        connect();
+    </script>
+</body>
+</html>

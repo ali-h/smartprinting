@@ -7,6 +7,7 @@ import { getParam } from '../utils/params.js';
 import { getBillingAccount } from './users.js';
 import fs from 'fs/promises';
 import fsSync from 'fs';  // Add this line
+import { sendUpdate } from '../config/websocket.js';
 
 const UPLOAD_DIR = 'uploads';
 
@@ -92,6 +93,17 @@ export const handleFile = async (req, res) => {
 
     // Commit the transaction
     await db.run('COMMIT');
+
+    // After successful upload
+    sendUpdate(username, {
+      type: 'file_uploaded',
+      data: {
+        filename: req.file.originalname,
+        fileId: fileId,
+        pages: totalPages,
+        bill: bill
+      }
+    });
 
     return res.status(200).json({ message: 'File uploaded successfully' });
   } catch (error) {
@@ -182,6 +194,15 @@ export const deleteFile = async (req, res) => {
 
     // Commit the transaction
     await db.run('COMMIT');
+
+    // After successful deletion
+    sendUpdate(username, {
+      type: 'file_deleted',
+      data: {
+        fileId: fileId,
+        refundedAmount: file.bill
+      }
+    });
 
     return res.status(200).json({ message: 'File deleted successfully and balance adjusted' });
   } catch (error) {

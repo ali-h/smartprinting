@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { FileDropzone } from '@skeletonlabs/skeleton';
   import { PDFDocument, degrees } from 'pdf-lib';
-  import { API_URL } from '../stores';
+  import { API_URL, updateTrigger } from '../stores';
   import { get, postFormData } from '$lib';
 	import { getToastStore } from '@skeletonlabs/skeleton';
   import { CloudUpload, Download } from 'lucide-svelte';
@@ -239,6 +239,11 @@
   onMount(async () => {
     await fetchCostPerPage();
   });
+
+  $: {
+    $updateTrigger;
+    fetchCostPerPage();
+  }
 </script>
 
 <div class="card p-4 bg-gradient-to-br from-slate-900 to-slate-800 shadow-lg rounded-[20px] shadow-slate-900">
