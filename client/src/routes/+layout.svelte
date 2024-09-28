@@ -15,6 +15,7 @@
 
 	const toastStore = getToastStore();
 
+	let isAPIUpdated = false;
 	let isDrawerOpen = false;
 	let isApiConnected = false;
 	let socket;
@@ -67,6 +68,9 @@
 		const storedApiUrl = localStorage.getItem('apiUrl');
 		if (storedApiUrl) {
 			$API_URL = storedApiUrl;
+			isAPIUpdated = true;
+		} else {
+			isAPIUpdated = true;
 		}
 		connectWebSocket();
 	});
@@ -112,9 +116,9 @@
 <AppBar gridColumns="grid-cols-3" slotDefault="place-self-center" slotTrail="place-content-end">
 	<svelte:fragment slot="lead">
 		<a href="/" class="flex items-center gap-2">
+			<div class={`w-3 h-3 rounded-full ${isApiConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
 			<img src="/icon.png" alt="Smart Printing" class="w-10 h-10" />
 			<span class="h3 handjet mt-1">SMART PRINTING</span>
-			<div class={`w-3 h-3 rounded-full ${isApiConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
 		</a>
 	</svelte:fragment>
 	<svelte:fragment slot="trail">
@@ -223,7 +227,9 @@
 	{/if}
 </AppBar>
 
+{#if isAPIUpdated}
 <slot />
+{/if}
 
 {#if $loading}
 	<div class="fixed bottom-0 left-0 right-0">

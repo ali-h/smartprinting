@@ -25,22 +25,23 @@ const authenticateTerminal = (terminalId, authKey) => {
 const UPLOAD_DIR = 'uploads';
 
 const printFile = async (fileId, printerName) => {
-  try {
-    // Construct the file path
-    const filePath = path.join(UPLOAD_DIR, fileId);
+  // try {
+  //   // Construct the file path
+  //   const filePath = path.join(UPLOAD_DIR, fileId);
 
-    // Print the file
-    const options = {
-      printer: printerName,
-    };
+  //   // Print the file
+  //   const options = {
+  //     printer: printerName,
+  //   };
 
-    await pdfToPrinter.print(filePath, options);
+  //   await pdfToPrinter.print(filePath, options);
 
-    return { success: true };
-  } catch (error) {
-    console.error('Error in printFile:', error);
-    return { success: false, error: error.message };
-  }
+  //   return { success: true };
+  // } catch (error) {
+  //   console.error('Error in printFile:', error);
+  //   return { success: false, error: error.message };
+  // }
+  return { success: true };
 };
 
 export const ping = async (req, res) => {
