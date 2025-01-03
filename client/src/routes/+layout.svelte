@@ -153,7 +153,7 @@
 					<Gauge size={20} />
 					<span class="text-gray-300">Dashboard</span>
 				</a>
-				<a class="btn variant-glass-secondary btn-lg rounded-l-none rounded-r-full w-4/5" href="/topup" on:click={handleMenuItemClick}>
+				<a class="btn variant-glass-secondary btn-lg rounded-l-none rounded-r-full w-4/5" href="/" on:click={handleMenuItemClick}>
 					<Wallet size={20} />
 					<span class="text-gray-300">Topup</span>
 				</a>
@@ -162,7 +162,7 @@
 					<span class="text-gray-300">Settings</span>
 				</a>
 				{/if}
-				<a class="btn variant-glass-secondary btn-lg rounded-l-none rounded-r-full w-4/5" href="/guide" on:click={handleMenuItemClick}>
+				<a class="btn variant-glass-secondary btn-lg rounded-l-none rounded-r-full w-4/5" href="/" on:click={handleMenuItemClick}>
 					<BookOpen size={16} />
 					<span class="text-gray-300">Guide</span>
 				</a>
@@ -188,11 +188,11 @@
 					<Settings size={16} />
 					<span class="text-gray-300">API</span>
 				</button>
-				<a class="btn variant-glass-error btn-lg rounded-r-none rounded-l-full" href="/about" on:click={handleMenuItemClick}>
+				<a class="btn variant-glass-error btn-lg rounded-r-none rounded-l-full" href="/" on:click={handleMenuItemClick}>
 					<FileText size={16} />
 					<span class="text-gray-300">About Us</span>
 				</a>
-				<a class="btn variant-glass-error btn-lg rounded-r-none rounded-l-full" href="/report" on:click={handleMenuItemClick}>
+				<a class="btn variant-glass-error btn-lg rounded-r-none rounded-l-full" href="/" on:click={handleMenuItemClick}>
 					<Flag size={20} />
 					<span class="text-gray-300">Report a Problem</span>
 				</a>
